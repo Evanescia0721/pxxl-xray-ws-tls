@@ -4,6 +4,7 @@ const { spawn, execSync } = require('child_process');
 const crypto = require('crypto');
 const uuid = process.env.UUID || process.env.APP_KEY;
 const wsPath = process.env.WSPATH || process.env.API_ROUTE || '/api/v1/sync';
+const vmessPath = '/vmess-ws-9d4f';
 const port = parseInt(process.env.PORT || '8080', 10);
 if (!uuid) { console.error('UUID required'); process.exit(1); }
 const bin = path.join(__dirname, 'web-worker');
@@ -18,6 +19,13 @@ const cfg = {
     protocol: 'vless',
     settings: { clients: [{ id: uuid }], decryption: 'none' },
     streamSettings: { network: 'ws', wsSettings: { path: wsPath } },
+    sniffing: { enabled: true, destOverride: ['http', 'tls', 'quic'] },
+    fallbacks: [{ path: vmessPath, dest: 3001 }]
+  }, {
+    listen: '127.0.0.1', port: 3001,
+    protocol: 'vmess',
+    settings: { clients: [{ id: uuid, alterId: 0 }] },
+    streamSettings: { network: 'ws', wsSettings: { path: vmessPath } },
     sniffing: { enabled: true, destOverride: ['http', 'tls', 'quic'] }
   }],
   outbounds: [
